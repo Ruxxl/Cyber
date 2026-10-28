@@ -1,0 +1,792 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Cyber</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: sticky top bar with tabs; hall = floor plan + attention rail; PC drawer from the right (bottom sheet on phones) */
+:root{
+  --bg:#ECEFF4; --surface:#FFFFFF; --surface-2:#F4F6F9; --ink:#131826; --muted:#5D6779; --line:#D6DBE4;
+  --accent:#C8235F; --accent-ink:#FFFFFF;
+  --free:#13905A; --busy:#2D5FD6; --res:#B07415; --ending:#E05A0C; --over:#D42B2B; --off:#8C95A5; --repair:#6E5BB8;
+  --f-display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",system-ui,sans-serif;
+  --f-body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",system-ui,sans-serif;
+  --f-mono:"SF Mono",ui-monospace,Menlo,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E121C; --surface:#161B28; --surface-2:#1C2232; --ink:#E6E9F1; --muted:#8E97AB; --line:#283044;
+  --accent:#FF4F8B; --accent-ink:#1A0610;
+  --free:#2FBF7A; --busy:#5C8BFF; --res:#E0A33A; --ending:#FF7A33; --over:#FF5A5A; --off:#6B7385; --repair:#9C8AF0;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0E121C; --surface:#161B28; --surface-2:#1C2232; --ink:#E6E9F1; --muted:#8E97AB; --line:#283044;
+  --accent:#FF4F8B; --accent-ink:#1A0610;
+  --free:#2FBF7A; --busy:#5C8BFF; --res:#E0A33A; --ending:#FF7A33; --over:#FF5A5A; --off:#6B7385; --repair:#9C8AF0;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+h1,h2,h3{margin:0;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:500;font-size:18px;letter-spacing:-.01em}
+h3{font-size:13px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top-in{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding-block:10px;max-width:1400px;margin:0 auto}
+.brand{display:flex;align-items:baseline;gap:8px;font-family:var(--f-display);font-weight:500;font-size:16px;letter-spacing:-.02em}
+.brand i{font-style:normal;color:var(--accent)}
+.demo{font-family:var(--f-body);font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+.tabs{display:flex;gap:2px;overflow-x:auto;flex:1;min-width:0;scrollbar-width:none}
+.tab{border:0;background:none;padding:8px 12px;border-radius:8px;font-weight:500;color:var(--muted);white-space:nowrap}
+.tab:hover{background:var(--surface-2);color:var(--ink)}
+.tab.on{background:var(--ink);color:var(--bg)}
+.top-r{display:flex;align-items:center;gap:10px}
+.clock{font-family:var(--f-mono);font-weight:500;font-size:15px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;border-radius:999px;padding:3px 10px;background:var(--surface-2);border:1px solid var(--line);white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--c,var(--off));flex:none}
+select.role{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:6px 8px;font-weight:500}
+
+main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1400px;margin:0 auto;display:grid;gap:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;min-width:0}
+.head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+/* hall */
+.hall{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:start}
+.floor{display:grid;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;
+  background-image:radial-gradient(circle,var(--line) 1px,transparent 1.2px);background-size:18px 18px}
+.room{border:2px solid var(--ink);border-radius:6px;padding:14px;background:var(--surface);position:relative;min-width:0}
+.room-l{position:absolute;top:-10px;left:12px;background:var(--surface);padding:0 8px;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+.room-vip{border-color:var(--accent)}
+.room-vip .room-l{color:var(--accent)}
+.row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.desk{height:10px;margin:8px 4%;border-radius:3px;background:var(--surface-2);border:1px solid var(--line)}
+.bottom{display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:14px}
+.recep{border:2px dashed var(--line);border-radius:6px;display:grid;place-content:center;text-align:center;gap:2px;padding:12px;color:var(--muted);font-size:12px}
+.recep b{color:var(--ink);font-size:13px}
+.door{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:right}
+
+.pc{--c:var(--free);display:grid;gap:2px;text-align:left;padding:9px 10px 10px;border-radius:8px;min-width:0;
+  background:color-mix(in srgb,var(--c) 11%,var(--surface));border:1px solid color-mix(in srgb,var(--c) 40%,var(--line));border-top:4px solid var(--c);
+  transition:transform .12s ease}
+.pc:hover{transform:translateY(-2px)}
+.pc.sel{outline:2px solid var(--ink);outline-offset:2px}
+.pc-n{font-family:var(--f-display);font-weight:500;font-size:20px;line-height:1.1;letter-spacing:-.03em}
+.pc-s{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--c);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc-t{font-family:var(--f-mono);font-size:13px;font-weight:500;white-space:nowrap}
+.pc-g{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:17px}
+.s-busy{--c:var(--busy)} .s-reserved{--c:var(--res)} .s-ending{--c:var(--ending)} .s-over{--c:var(--over)} .s-offline{--c:var(--off)} .s-repair{--c:var(--repair)}
+.s-offline{border-style:dashed;border-top-style:solid;background:var(--surface-2)}
+.s-offline .pc-n{color:var(--muted)}
+.s-repair{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--c) 14%,var(--surface)) 0 7px,var(--surface) 7px 14px)}
+.s-over{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 4px color-mix(in srgb,var(--over) 30%,transparent)}}
+@media (prefers-reduced-motion:reduce){.s-over{animation:none}.pc{transition:none}.drawer{transition:none!important}}
+
+.rail{display:grid;gap:14px}
+.counts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cnt{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--surface-2)}
+.cnt b{display:block;font-family:var(--f-display);font-size:22px;font-weight:500;letter-spacing:-.03em}
+.cnt span{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.load{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}
+.load i{display:block;height:100%;background:var(--busy)}
+.alerts{display:grid;gap:6px}
+.al{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 10px}
+.al:hover{background:var(--surface-2)}
+.al .pc-n{font-size:14px;min-width:26px}
+.al div{flex:1;min-width:0;font-size:13px}
+.al small{display:block;color:var(--muted);font-size:12px}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;font-size:12px}
+.legend span{display:flex;align-items:center;gap:6px}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 35%,transparent);z-index:40}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(420px,100%);z-index:50;background:var(--surface);border-left:1px solid var(--line);
+  overflow-y:auto;padding:calc(18px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) 20px;
+  display:grid;gap:18px;align-content:start;box-shadow:-12px 0 32px rgba(0,0,0,.15)}
+.dh{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.dh .pc-n{font-size:26px}
+.x{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;width:34px;height:34px;font-size:18px;line-height:1}
+.big{font-family:var(--f-mono);font-size:34px;font-weight:500;letter-spacing:-.02em;line-height:1}
+dl.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0;font-size:13px}
+dl.kv dt{color:var(--muted)} dl.kv dd{margin:0;font-weight:500;text-align:right}
+.sec{display:grid;gap:10px;padding-top:16px;border-top:1px solid var(--line)}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.opt{display:grid;gap:2px;text-align:left;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:8px 10px}
+.opt b{font-size:13px} .opt span{font-family:var(--f-mono);font-size:13px;color:var(--muted)} .opt small{font-size:11px;color:var(--muted)}
+.opt.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--surface));box-shadow:inset 0 0 0 1px var(--accent)}
+.opt.on span{color:var(--ink)}
+.opt:disabled{opacity:.45;cursor:not-allowed}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface-2);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:500}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+label.f{display:grid;gap:4px;font-size:12px;font-weight:500;color:var(--muted)}
+input.in,select.in{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 11px;width:100%;font-size:14px;color:var(--ink)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{border:0;border-radius:9px;padding:12px 16px;font-weight:500;background:var(--accent);color:var(--accent-ink);width:100%;font-size:14px}
+.btn:hover{filter:brightness(1.07)}
+.btn:disabled{opacity:.4;cursor:not-allowed;filter:none}
+.btn.ghost{background:var(--surface-2);color:var(--ink);border:1px solid var(--line)}
+.btn.danger{background:var(--over);color:#fff}
+.btn.sm{width:auto;padding:7px 12px;font-size:13px}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btns .btn{flex:1;min-width:120px}
+.note{font-size:12px;color:var(--muted)}
+.warn{font-size:13px;padding:10px 12px;border-radius:8px;background:color-mix(in srgb,var(--ending) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--ending) 40%,var(--line))}
+.tab-list{display:grid;gap:4px;font-size:13px}
+.tab-list div{display:flex;justify-content:space-between;gap:8px}
+
+/* bar */
+.bar{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:start}
+.prods{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.prod{display:grid;gap:4px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:12px}
+.prod:hover{border-color:var(--ink)}
+.prod:disabled{opacity:.45;cursor:not-allowed}
+.prod b{font-size:14px}
+.prod .pr{font-family:var(--f-mono);font-weight:500}
+.prod small{font-size:12px;color:var(--muted)}
+.prod small.low{color:var(--ending);font-weight:500}
+.cart{position:sticky;top:76px;display:grid;gap:14px}
+.cl{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;font-size:13px}
+.qty{display:flex;align-items:center;gap:6px}
+.qty button{width:26px;height:26px;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);font-weight:500}
+.total{display:flex;justify-content:space-between;align-items:baseline;font-weight:500}
+.total .mono{font-size:22px}
+
+/* tables */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:500;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.r,th.r{text-align:right}
+tr.cx td{color:var(--muted);text-decoration:line-through}
+tr.cx td.keep{text-decoration:none}
+td input.in{padding:6px 8px;width:96px}
+.tag{display:inline-block;font-size:11px;font-weight:500;border-radius:4px;padding:1px 6px;background:var(--surface-2);border:1px solid var(--line);white-space:nowrap}
+.tag.pc{color:var(--busy)} .tag.bar{color:var(--accent)} .tag.low{color:var(--ending);border-color:color-mix(in srgb,var(--ending) 50%,var(--line))}
+
+/* shift + reports */
+.cols2{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:20px;align-items:start}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:4px}
+.kpi span{font-size:12px;color:var(--muted);font-weight:500}
+.kpi b{font-family:var(--f-display);font-weight:500;font-size:22px;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.kpi small{font-size:12px;color:var(--muted)}
+.lines{display:grid;gap:8px;font-size:14px}
+.lines div{display:flex;justify-content:space-between;gap:10px}
+.lines .sum{border-top:1px solid var(--line);padding-top:8px;font-weight:500}
+svg text{font-family:var(--f-body)}
+.ax text{fill:var(--muted);font-size:11px}
+.ax line{stroke:var(--line)}
+.c-pc{fill:var(--busy)} .c-bar{fill:var(--accent)}
+.lg{display:flex;gap:14px;font-size:12px;color:var(--muted)}
+.lg span{display:flex;align-items:center;gap:6px}
+.sw{width:10px;height:10px;border-radius:2px;display:inline-block}
+.heat{display:grid;grid-template-columns:28px repeat(24,minmax(14px,1fr));gap:2px;font-size:10px;color:var(--muted);min-width:420px}
+.heat i{height:20px;border-radius:2px;display:block}
+.heat .hl{display:flex;align-items:center}
+.split{display:flex;height:12px;border-radius:6px;overflow:hidden;gap:2px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:9px;font-weight:500;z-index:60;max-width:calc(100% - 32px)}
+
+@media (max-width:1000px){.hall,.bar,.cols2{grid-template-columns:minmax(0,1fr)}.cart{position:static}}
+@media (max-width:640px){
+  .row{gap:6px}.pc{padding:7px 6px 8px}.pc-n{font-size:16px}.pc-g{display:none}.pc-s{font-size:9px}.pc-t{font-size:11px}
+  .floor{padding:12px}.room{padding:12px 8px}.bottom{grid-template-columns:1fr}
+  .drawer{top:auto;width:100%;max-height:88vh;border-left:0;border-top:1px solid var(--line);border-radius:16px 16px 0 0;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
+  .top-in{gap:10px}.tabs{order:3;flex-basis:100%}
+}
+b,strong{font-weight:500}
+/* bold is reserved for headings */
+h1,h2,h3,.brand,.dh .pc-n{font-weight:700}
+</style>
+</head>
+<body>
+
+<header class="top"><div class="top-in">
+  <div class="brand">Cyber <span class="demo">демо</span></div>
+  <nav class="tabs" id="tabs"></nav>
+  <div class="top-r">
+    <span class="pill" id="shiftPill"></span>
+    <span class="clock" id="clock"></span>
+    <select class="role" id="role" aria-label="Роль">
+      <option value="admin">Админ</option>
+      <option value="owner">Владелец</option>
+    </select>
+  </div>
+</div></header>
+
+<main><div class="wrap" id="view"></div></main>
+<div id="drawerWrap" hidden><div class="scrim" data-act="close"></div><aside class="drawer" id="drawer" aria-label="Компьютер"></aside></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const M = 60000, H = 3600000;
+const LS = 'pult-kluba-v1';
+const PKGS = [
+  {id:'h1', name:'1 час', min:60},
+  {id:'h2', name:'2 часа', min:120},
+  {id:'h3', name:'3 часа', min:180},
+  {id:'h5', name:'5 часов', min:300},
+  {id:'night', name:'Ночь', night:true},
+];
+const ZONE = {std:'Standard', vip:'VIP'};
+const METHODS = {cash:'Наличные', card:'Карта', kaspi:'Kaspi QR'};
+const ST = {
+  free:{l:'Свободен', c:'--free'}, busy:{l:'Занят', c:'--busy'}, ending:{l:'Скоро освободится', c:'--ending'},
+  over:{l:'Время вышло', c:'--over'}, reserved:{l:'Бронь', c:'--res'}, offline:{l:'Offline', c:'--off'}, repair:{l:'Ремонт', c:'--repair'},
+};
+const VIEWS = [
+  {id:'hall', name:'Зал'}, {id:'bar', name:'Бар'}, {id:'shift', name:'Смена и касса'},
+  {id:'stock', name:'Склад', owner:true}, {id:'tariffs', name:'Тарифы', owner:true}, {id:'reports', name:'Отчёты', owner:true},
+];
+const DAYS = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+
+const $ = s => document.querySelector(s);
+const now = () => Date.now();
+const pad = n => String(n).padStart(2,'0');
+const money = n => Math.round(n).toLocaleString('ru-RU') + '\u00a0₸';
+const hm = t => { const d = new Date(t); return pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+const dur = ms => { const s = Math.floor(Math.abs(ms)/1000); return Math.floor(s/3600) + ':' + pad(Math.floor(s%3600/60)) + ':' + pad(s%60); };
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dayStart = t => { const d = new Date(t); d.setHours(0,0,0,0); return d.getTime(); };
+const kfmt = n => n >= 1000 ? Math.round(n/1000) + ' тыс' : String(Math.round(n));
+function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+/* ---------- state ---------- */
+let S;
+const ui = { view:'hall', sel:null, draft:{}, cart:{}, cartTarget:'now', cartMethod:'cash', cat:'Все', storno:null };
+
+function seed(){
+  const t = now(), r = rng(42);
+  const tariffs = { std:{h1:600,h2:1100,h3:1500,h5:2300,night:3000}, vip:{h1:1000,h2:1900,h3:2600,h5:4000,night:5000} };
+  const products = [
+    ['p1','Coca-Cola 0,5','Напитки',250,600,34], ['p2','Fuse Tea 0,5','Напитки',230,550,18], ['p3','Вода 0,5','Напитки',90,300,40],
+    ['p4','Red Bull 0,25','Энергетики',450,1000,22], ['p5','Gorilla 0,45','Энергетики',280,700,4], ['p6','Monster 0,5','Энергетики',520,1100,12],
+    ['p7','Lays 80 г','Снеки',300,650,15], ['p8','Snickers','Снеки',220,500,26], ['p9','Кириешки','Снеки',150,400,3],
+    ['p10','Бургер','Горячее',900,1900,10], ['p11','Хот-дог','Горячее',450,1100,14], ['p12','Лапша','Горячее',250,800,20],
+  ].map(([id,name,cat,cost,price,stock]) => ({id,name,cat,cost,price,stock}));
+  const P = id => products.find(p => p.id === id);
+  const item = (id,qty=1) => ({pid:id, name:P(id).name, qty, price:P(id).price, cost:P(id).cost});
+  const pcs = Array.from({length:15}, (_,i) => ({id:i+1, zone:i<10?'std':'vip', status:'on', note:'', session:null, reservation:null}));
+  const shift = {admin:'Данияр', openedAt:t - 7*H, openingCash:20000};
+  const ops = []; let seq = 1;
+  const op = o => ops.push(Object.assign({id:seq++, canceled:false, reason:'', items:[], cost:0}, o));
+  const methods = ['cash','card','kaspi','kaspi','card'];
+  const names = ['Арман','Тимур','Даня','Алихан','Саша','Ержан','Мадина','Нурик','Олжас','Бекзат','Аружан','Ильяс'];
+
+  // earlier sales during the shift
+  for (let i = 0; i < 26; i++){
+    const at = shift.openedAt + 10*M + r() * (7*H - 50*M);
+    const m = methods[Math.floor(r()*methods.length)];
+    if (i % 2 === 0){
+      const pcId = 1 + Math.floor(r()*15), z = pcId <= 10 ? 'std' : 'vip', pk = ['h1','h2','h3','h1','h5'][Math.floor(r()*5)];
+      op({t:at, kind:'pc', title:`ПК ${pad(pcId)} · ${PKGS.find(p=>p.id===pk).name} · ${names[Math.floor(r()*names.length)]}`, amount:tariffs[z][pk], method:m});
+    } else {
+      const its = [item(products[Math.floor(r()*12)].id, 1 + Math.floor(r()*2))];
+      if (r() > .5) its.push(item(products[Math.floor(r()*12)].id));
+      op({t:at, kind:'bar', title:'Бар · ' + its.map(x => x.name + (x.qty>1?' ×'+x.qty:'')).join(', '), amount:its.reduce((s,x)=>s+x.price*x.qty,0), cost:its.reduce((s,x)=>s+x.cost*x.qty,0), method:m, items:its});
+    }
+  }
+  const ses = (id, guest, pk, ago, tab=[]) => {
+    const pc = pcs[id-1], start = t - ago*M, p = PKGS.find(x => x.id === pk);
+    pc.session = {guest, phone:'', pkg:p.name, start, end:start + p.min*M, paid:tariffs[pc.zone][pk], tab};
+    op({t:start, kind:'pc', title:`ПК ${pad(id)} · ${p.name} · ${guest}`, amount:tariffs[pc.zone][pk], method:methods[id % methods.length]});
+  };
+  ses(1,'Арман','h3',40); ses(2,'Тимур','h1',54); ses(4,'Даня','h2',122); ses(7,'Алихан','h5',95,[item('p4'),item('p7')]);
+  ses(10,'Саша','h1',20); ses(11,'Ержан','h3',70,[item('p10')]); ses(14,'Мадина','h2',15); ses(3,'Бекзат','h2',31);
+  pcs[4].reservation = {guest:'Олжас', phone:'+7 701 555 12 40', at:t + 25*M, pkg:'h3'};
+  pcs[11].reservation = {guest:'Нурлан', phone:'+7 777 410 08 19', at:t + 70*M, pkg:'h5'};
+  pcs[5].status = 'offline'; pcs[5].note = 'Нет сети, проверить кабель';
+  pcs[8].status = 'repair'; pcs[8].note = 'Не работает мышь, ждём замену';
+  ops.sort((a,b) => a.t - b.t);
+
+  // previous 6 days for reports
+  const history = [];
+  for (let d = 6; d >= 1; d--){
+    const ds = dayStart(t) - d*24*H, wd = new Date(ds).getDay(), wk = wd === 0 || wd === 5 || wd === 6 ? 1.3 : 1;
+    const bar = Math.round((19000 + r()*12000) * wk / 100) * 100;
+    history.push({date:ds, pc:Math.round((48000 + r()*22000) * wk / 100) * 100, bar, barCost:Math.round(bar * (.42 + r()*.06))});
+  }
+  // average load by weekday × hour
+  const heat = [];
+  for (let wd = 0; wd < 7; wd++){
+    const row = [], wk = wd === 0 || wd === 5 || wd === 6 ? .12 : 0;
+    for (let h = 0; h < 24; h++){
+      const base = h<3 ? .7 - h*.12 : h<8 ? .12 - (h-3)*.015 : h<13 ? .2 + (h-8)*.04 : h<18 ? .42 + (h-13)*.05 : .74 + Math.min(h-18,3)*.06;
+      row.push(Math.max(.02, Math.min(1, base + wk + (r()-.5)*.14)));
+    }
+    heat.push(row);
+  }
+  return {tariffs, products, pcs, shift, ops, seq, closed:[], history, heat, role:'admin'};
+}
+function load(){ try { const raw = localStorage.getItem(LS); if (raw){ S = JSON.parse(raw); return; } } catch(e){} S = seed(); }
+function save(){ try { localStorage.setItem(LS, JSON.stringify(S)); } catch(e){} }
+function addOp(o){ S.ops.push(Object.assign({id:S.seq++, t:now(), canceled:false, reason:'', items:[], cost:0}, o)); }
+
+/* ---------- domain helpers ---------- */
+const pcById = id => S.pcs.find(p => p.id === +id);
+const prodById = id => S.products.find(p => p.id === id);
+const pkgById = id => PKGS.find(p => p.id === id);
+const nightOk = () => { const h = new Date().getHours(); return h >= 21 || h < 6; };
+function endFor(pk, from){
+  const p = pkgById(pk);
+  if (!p.night) return from + p.min*M;
+  const d = new Date(from); d.setHours(8,0,0,0); if (d.getTime() <= from) d.setDate(d.getDate()+1); return d.getTime();
+}
+function status(pc){
+  if (pc.status === 'offline') return 'offline';
+  if (pc.status === 'repair') return 'repair';
+  if (pc.session){ const left = pc.session.end - now(); return left <= 0 ? 'over' : left <= 10*M ? 'ending' : 'busy'; }
+  if (pc.reservation) return 'reserved';
+  return 'free';
+}
+const tabSum = s => s.tab.reduce((a,x) => a + x.price*x.qty, 0);
+const tabCost = s => s.tab.reduce((a,x) => a + x.cost*x.qty, 0);
+const shiftOps = () => S.shift ? S.ops.filter(o => o.t >= S.shift.openedAt) : [];
+const live = o => !o.canceled;
+function needShift(){ if (!S.shift){ toast('Сначала откройте смену'); return true; } return false; }
+
+/* ---------- render: chrome ---------- */
+function renderTop(){
+  const owner = S.role === 'owner';
+  $('#tabs').innerHTML = VIEWS.filter(v => owner || !v.owner).map(v => `<button class="tab ${ui.view===v.id?'on':''}" data-act="view" data-v="${v.id}">${v.name}</button>`).join('');
+  $('#role').value = S.role;
+  $('#shiftPill').innerHTML = S.shift ? `<span class="dot" style="--c:var(--free)"></span>Смена · ${esc(S.shift.admin)}` : `<span class="dot" style="--c:var(--over)"></span>Смена закрыта`;
+}
+function tickClock(){ const d = new Date(); $('#clock').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); }
+function render(){
+  if (VIEWS.find(v => v.id === ui.view)?.owner && S.role !== 'owner') ui.view = 'hall';
+  renderTop();
+  ({hall:renderHall, bar:renderBar, shift:renderShift, stock:renderStock, tariffs:renderTariffs, reports:renderReports})[ui.view]();
+  renderDrawer();
+}
+
+/* ---------- hall ---------- */
+function tile(pc){
+  const st = status(pc), s = pc.session, r = pc.reservation;
+  let t = '', g = '';
+  if (s){ t = st === 'over' ? '+' + dur(now() - s.end) : dur(s.end - now()); g = s.guest; }
+  else if (st === 'reserved'){ t = 'на ' + hm(r.at); g = r.guest; }
+  else if (st === 'free'){ t = money(S.tariffs[pc.zone].h1) + '/ч'; }
+  else { t = '—'; g = pc.note; }
+  return `<button class="pc s-${st} ${ui.sel===pc.id?'sel':''}" data-act="pc" data-id="${pc.id}" aria-label="ПК ${pc.id}, ${ST[st].l}">
+    <span class="pc-n">${pad(pc.id)}</span><span class="pc-s">${ST[st].l}</span><span class="pc-t">${t}</span><span class="pc-g">${esc(g)}</span></button>`;
+}
+// update the DOM in place so the per-second timer tick doesn't swallow clicks
+function morph(a, b){
+  if (a.nodeType !== b.nodeType || a.nodeName !== b.nodeName){ a.replaceWith(b.cloneNode(true)); return; }
+  if (a.nodeType === 3){ if (a.nodeValue !== b.nodeValue) a.nodeValue = b.nodeValue; return; }
+  if (a.nodeType !== 1) return;
+  for (const at of [...a.attributes]) if (!b.hasAttribute(at.name)) a.removeAttribute(at.name);
+  for (const at of b.attributes) if (a.getAttribute(at.name) !== at.value) a.setAttribute(at.name, at.value);
+  const ac = [...a.childNodes], bc = [...b.childNodes];
+  if (ac.length !== bc.length){ a.innerHTML = b.innerHTML; return; }
+  ac.forEach((n,i) => morph(n, bc[i]));
+}
+function patchHall(){
+  const v = $('#view'), tpl = document.createElement('div');
+  tpl.innerHTML = hallHtml();
+  if (v.childNodes.length !== tpl.childNodes.length){ v.innerHTML = tpl.innerHTML; return; }
+  [...v.childNodes].forEach((n,i) => morph(n, tpl.childNodes[i]));
+}
+function renderHall(){ $('#view').innerHTML = hallHtml(); }
+function hallHtml(){
+  const pcs = S.pcs, cnt = {}; pcs.forEach(p => { const s = status(p); cnt[s] = (cnt[s]||0) + 1; });
+  const busy = (cnt.busy||0) + (cnt.ending||0) + (cnt.over||0), working = 15 - (cnt.offline||0) - (cnt.repair||0);
+  const alerts = [];
+  pcs.forEach(p => {
+    const st = status(p);
+    if (st === 'over') alerts.push([0, p, 'Время вышло', `${esc(p.session.guest)} · просрочено на ${dur(now()-p.session.end)}`]);
+    if (st === 'ending') alerts.push([1, p, 'Скоро освободится', `${esc(p.session.guest)} · осталось ${dur(p.session.end-now())}. Предложите продление`]);
+    if (st === 'reserved'){ const late = now() - p.reservation.at;
+      if (late > 15*M) alerts.push([0, p, 'Бронь просрочена', `${esc(p.reservation.guest)} не пришёл, бронь была на ${hm(p.reservation.at)}`]);
+      else if (p.reservation.at - now() < 90*M) alerts.push([2, p, 'Бронь на ' + hm(p.reservation.at), `${esc(p.reservation.guest)} · ${esc(p.reservation.phone)}`]); }
+    if (st === 'repair' || st === 'offline') alerts.push([3, p, ST[st].l, esc(p.note || 'Без комментария')]);
+  });
+  alerts.sort((a,b) => a[0] - b[0]);
+  return `<div class="hall">
+    <div class="floor">
+      <div class="room"><span class="room-l">Общий зал · Standard</span>
+        <div class="row">${pcs.slice(0,5).map(tile).join('')}</div><div class="desk"></div>
+        <div class="row">${pcs.slice(5,10).map(tile).join('')}</div></div>
+      <div class="bottom">
+        <div class="room room-vip"><span class="room-l">VIP-комната</span><div class="row">${pcs.slice(10).map(tile).join('')}</div></div>
+        <div class="recep"><b>Ресепшн и бар</b>администратор<div class="door">↓ вход</div></div>
+      </div>
+    </div>
+    <div class="rail">
+      <div class="card" style="display:grid;gap:12px">
+        <div class="counts">
+          <div class="cnt"><b class="num">${cnt.free||0}</b><span><i class="dot" style="--c:var(--free)"></i>свободно</span></div>
+          <div class="cnt"><b class="num">${busy}</b><span><i class="dot" style="--c:var(--busy)"></i>занято</span></div>
+          <div class="cnt"><b class="num">${cnt.reserved||0}</b><span><i class="dot" style="--c:var(--res)"></i>бронь</span></div>
+          <div class="cnt"><b class="num">${(cnt.offline||0)+(cnt.repair||0)}</b><span><i class="dot" style="--c:var(--off)"></i>не работает</span></div>
+        </div>
+        <div style="display:grid;gap:6px"><div class="head"><span class="note">Загрузка рабочих ПК</span><b class="num">${working ? Math.round(busy/working*100) : 0}%</b></div>
+          <div class="load"><i style="width:${working ? busy/working*100 : 0}%"></i></div></div>
+      </div>
+      <div class="card" style="display:grid;gap:10px"><h3>Требует внимания</h3>
+        <div class="alerts">${alerts.length ? alerts.map(([,p,h,sub]) => `<button class="al" data-act="pc" data-id="${p.id}"><span class="pc-n" style="color:var(${ST[status(p)].c})">${pad(p.id)}</span><div><b>${h}</b><small>${sub}</small></div></button>`).join('') : '<span class="note">Всё спокойно</span>'}</div>
+      </div>
+      <div class="card" style="display:grid;gap:10px"><h3>Статусы</h3>
+        <div class="legend">${Object.entries(ST).map(([k,v]) => `<span><i class="dot" style="--c:var(${v.c})"></i>${k==='free'?'Свободен (online)':v.l}</span>`).join('')}</div></div>
+    </div></div>`;
+}
+
+/* ---------- drawer ---------- */
+const payChips = (key, val) => `<div class="chips">${Object.entries(METHODS).map(([k,v]) => `<button class="chip ${val===k?'on':''}" data-act="dset" data-k="${key}" data-v="${k}">${v}</button>`).join('')}</div>`;
+function pkgOpts(zone, sel, noNight){
+  return `<div class="opts">${PKGS.filter(p => !(noNight && p.night)).map(p => { const dis = p.night && !nightOk();
+    return `<button class="opt ${sel===p.id?'on':''}" data-act="dset" data-k="pkg" data-v="${p.id}" ${dis?'disabled':''}><b>${p.night?'Ночь 22–08':p.name}</b><span>${money(S.tariffs[zone][p.id])}</span>${dis?'<small>продаётся с 21:00</small>':''}</button>`; }).join('')}</div>`;
+}
+function openPc(id){ ui.sel = +id; const pc = pcById(id); ui.draft = {mode:'now', pkg:pc.reservation?.pkg || 'h1', method:'cash', guest:'', phone:'', rtime:defaultRtime()}; render(); }
+function defaultRtime(){ const d = new Date(now() + 30*M); d.setMinutes(Math.ceil(d.getMinutes()/5)*5); return pad(d.getHours()) + ':' + pad(d.getMinutes() % 60); }
+function closeDrawer(){ ui.sel = null; render(); }
+
+function renderDrawer(){
+  const wrap = $('#drawerWrap');
+  if (!ui.sel){ wrap.hidden = true; return; }
+  const pc = pcById(ui.sel), st = status(pc), d = ui.draft;
+  if (d.pkg === 'night' && !nightOk()) d.pkg = 'h1';
+  let body = '';
+  const noShift = !S.shift ? '<div class="warn">Смена закрыта. Откройте смену на вкладке «Смена и касса», чтобы продавать время.</div>' : '';
+  if (st === 'free'){
+    const price = S.tariffs[pc.zone][d.pkg];
+    body = `${noShift}<div class="chips"><button class="chip ${d.mode==='now'?'on':''}" data-act="dset" data-k="mode" data-v="now">Посадить сейчас</button><button class="chip ${d.mode==='res'?'on':''}" data-act="dset" data-k="mode" data-v="res">Забронировать</button></div>
+      <div class="sec"><h3>Пакет</h3>${pkgOpts(pc.zone, d.pkg)}</div>
+      <div class="sec"><h3>Гость</h3><div class="grid2">
+        <label class="f">Имя или ник<input class="in" id="d-guest" data-f="guest" value="${esc(d.guest)}" placeholder="Гость"></label>
+        <label class="f">Телефон<input class="in" id="d-phone" data-f="phone" value="${esc(d.phone)}" placeholder="+7 7__ ___ __ __" inputmode="tel"></label></div>
+        ${d.mode==='res' ? `<label class="f">Время прихода<input class="in" type="time" id="d-rtime" data-f="rtime" value="${esc(d.rtime)}"></label><p class="note" style="margin:0">ПК держим 15 минут после назначенного времени. Оплата при посадке.</p>` : ''}</div>
+      ${d.mode==='now' ? `<div class="sec"><h3>Оплата</h3>${payChips('method', d.method)}
+        <p class="note" style="margin:0">Закончится в ${hm(endFor(d.pkg, now()))}</p>
+        <button class="btn" data-act="start" ${S.shift?'':'disabled'}>Запустить · ${money(price)}</button></div>`
+      : `<div class="sec"><button class="btn" data-act="reserve">Забронировать на ${esc(d.rtime)}</button></div>`}
+      <div class="sec"><h3>Обслуживание</h3>
+        ${d.offMode ? `<label class="f">Причина (${d.offMode==='repair'?'ремонт':'offline'})<input class="in" id="d-note" data-f="note" value="${esc(d.note||'')}" placeholder="Например: не работает мышь"></label>
+          <div class="btns"><button class="btn ghost" data-act="dset" data-k="offMode" data-v="">Отмена</button><button class="btn danger" data-act="setoff">Вывести из работы</button></div>`
+        : `<div class="btns"><button class="btn ghost" data-act="dset" data-k="offMode" data-v="offline">Offline</button><button class="btn ghost" data-act="dset" data-k="offMode" data-v="repair">В ремонт</button></div>`}</div>`;
+  } else if (pc.session){
+    const s = pc.session, tsum = tabSum(s), free = S.pcs.filter(p => status(p) === 'free');
+    const ext = d.pkg === 'night' || d.pkg === 'h5' ? 'h1' : d.pkg;
+    body = `<div style="display:grid;gap:6px"><span class="note">${st==='over'?'Просрочено на':'Осталось'}</span><span class="big" data-left="${pc.id}" style="color:var(${ST[st].c})">${st==='over'?'+':''}${dur(s.end-now())}</span></div>
+      ${st==='over' ? '<div class="warn">Время гостя закончилось. Продлите или завершите сессию.</div>' : ''}
+      <dl class="kv"><dt>Гость</dt><dd>${esc(s.guest)}${s.phone?' · '+esc(s.phone):''}</dd><dt>Пакет</dt><dd>${esc(s.pkg)}</dd>
+        <dt>Время</dt><dd class="mono">${hm(s.start)} → ${hm(s.end)}</dd><dt>Оплачено за время</dt><dd class="mono">${money(s.paid)}</dd></dl>
+      <div class="sec"><div class="head"><h3>Бар на ПК</h3><button class="btn ghost sm" data-act="tobar">+ Добавить из бара</button></div>
+        ${s.tab.length ? `<div class="tab-list">${s.tab.map(x => `<div><span>${esc(x.name)} × ${x.qty}</span><span class="mono">${money(x.price*x.qty)}</span></div>`).join('')}<div style="font-weight:500;border-top:1px solid var(--line);padding-top:4px"><span>Не оплачено</span><span class="mono">${money(tsum)}</span></div></div>` : '<span class="note">Пусто. Заказы можно записать на ПК и оплатить при уходе.</span>'}</div>
+      <div class="sec"><h3>Продлить</h3>${noShift}
+        <div class="opts">${['h1','h2','h3'].map(k => `<button class="opt ${ext===k?'on':''}" data-act="dset" data-k="pkg" data-v="${k}"><b>+ ${pkgById(k).name}</b><span>${money(S.tariffs[pc.zone][k])}</span></button>`).join('')}</div>
+        ${payChips('method', d.method)}
+        <button class="btn" data-act="extend" data-pkg="${ext}" ${S.shift?'':'disabled'}>Продлить до ${hm(Math.max(s.end, now()) + pkgById(ext).min*M)} · ${money(S.tariffs[pc.zone][ext])}</button></div>
+      <div class="sec"><h3>Пересадить</h3>
+        ${free.length ? `<div class="btns"><select class="in" id="d-move" data-f="moveTo" style="flex:1;min-width:120px">${free.map(p => `<option value="${p.id}" ${+d.moveTo===p.id?'selected':''}>ПК ${pad(p.id)} · ${ZONE[p.zone]}</option>`).join('')}</select><button class="btn ghost sm" data-act="move">Пересадить</button></div><p class="note" style="margin:0">Оставшееся время и бар переносятся на новый ПК.</p>` : '<span class="note">Нет свободных ПК</span>'}</div>
+      <div class="sec"><h3>Завершить</h3>
+        ${tsum ? `<span class="note">Сначала гость оплачивает бар: ${money(tsum)}</span>${payChips('method', d.method)}` : ''}
+        ${d.confirmEnd ? `<div class="btns"><button class="btn ghost" data-act="dset" data-k="confirmEnd" data-v="">Отмена</button><button class="btn danger" data-act="end">${tsum ? 'Оплатить ' + money(tsum) + ' и освободить' : 'Да, освободить ПК'}</button></div>`
+          : `<button class="btn ghost" data-act="dset" data-k="confirmEnd" data-v="1">Завершить сессию</button>`}</div>`;
+  } else if (st === 'reserved'){
+    const r = pc.reservation, late = now() - r.at;
+    body = `${late > 15*M ? `<div class="warn">Гость опаздывает на ${Math.floor(late/M)} мин. Бронь можно снять.</div>` : ''}
+      <dl class="kv"><dt>Гость</dt><dd>${esc(r.guest)}</dd><dt>Телефон</dt><dd>${esc(r.phone||'—')}</dd><dt>Время</dt><dd class="mono">${hm(r.at)}</dd><dt>Пакет</dt><dd>${pkgById(r.pkg).name}</dd></dl>
+      <div class="sec"><h3>Посадить гостя</h3>${noShift}${pkgOpts(pc.zone, d.pkg)}${payChips('method', d.method)}
+        <button class="btn" data-act="seat" ${S.shift?'':'disabled'}>Запустить · ${money(S.tariffs[pc.zone][d.pkg])}</button></div>
+      <div class="sec"><button class="btn ghost" data-act="unreserve">Снять бронь</button></div>`;
+  } else {
+    body = `<dl class="kv"><dt>Причина</dt><dd>${esc(pc.note || '—')}</dd></dl><button class="btn" data-act="online">Вернуть в работу</button>`;
+  }
+  $('#drawer').innerHTML = `<div class="dh"><div><span class="pc-n">ПК ${pad(pc.id)}</span><div class="note">${ZONE[pc.zone]} · ${money(S.tariffs[pc.zone].h1)}/час</div></div>
+      <div style="display:flex;gap:8px;align-items:center"><span class="pill"><i class="dot" style="--c:var(${ST[st].c})"></i>${ST[st].l}</span><button class="x" data-act="close" aria-label="Закрыть">×</button></div></div>${body}`;
+  wrap.hidden = false;
+}
+
+/* ---------- bar ---------- */
+function renderBar(){
+  const cats = ['Все', ...new Set(S.products.map(p => p.cat))];
+  const list = S.products.filter(p => ui.cat === 'Все' || p.cat === ui.cat);
+  const lines = Object.entries(ui.cart).map(([pid,q]) => ({p:prodById(pid), q}));
+  const total = lines.reduce((s,l) => s + l.p.price*l.q, 0);
+  const tabPcs = S.pcs.filter(p => p.session);
+  if (ui.cartTarget !== 'now' && !pcById(ui.cartTarget)?.session) ui.cartTarget = 'now';
+  $('#view').innerHTML = `<div class="bar">
+    <div style="display:grid;gap:14px;min-width:0"><div class="head"><h2>Бар</h2><div class="chips">${cats.map(c => `<button class="chip ${ui.cat===c?'on':''}" data-act="cat" data-v="${c}">${c}</button>`).join('')}</div></div>
+      <div class="prods">${list.map(p => `<button class="prod" data-act="add" data-id="${p.id}" ${p.stock - (ui.cart[p.id]||0) <= 0 ? 'disabled' : ''}><b>${esc(p.name)}</b><span class="pr">${money(p.price)}</span><small class="${p.stock<=5?'low':''}">${p.stock<=0?'Нет в наличии':'Остаток ' + p.stock + ' шт'}</small></button>`).join('')}</div></div>
+    <div class="card cart"><h2>Заказ</h2>
+      ${lines.length ? lines.map(l => `<div class="cl"><span>${esc(l.p.name)}</span><span class="qty"><button data-act="dec" data-id="${l.p.id}" aria-label="Меньше">−</button><b class="num">${l.q}</b><button data-act="add" data-id="${l.p.id}" aria-label="Больше">+</button></span><span class="mono">${money(l.p.price*l.q)}</span></div>`).join('') : '<span class="note">Нажмите на товар, чтобы добавить его в заказ</span>'}
+      <div class="total"><span>Итого</span><span class="mono">${money(total)}</span></div>
+      <label class="f">Куда записать<select class="in" id="cartTarget"><option value="now">Оплатить сейчас</option>${tabPcs.map(p => `<option value="${p.id}" ${+ui.cartTarget===p.id?'selected':''}>На ПК ${pad(p.id)} · ${esc(p.session.guest)} (оплата при уходе)</option>`).join('')}</select></label>
+      ${ui.cartTarget === 'now' ? `<div class="chips">${Object.entries(METHODS).map(([k,v]) => `<button class="chip ${ui.cartMethod===k?'on':''}" data-act="cmethod" data-v="${k}">${v}</button>`).join('')}</div>` : ''}
+      ${S.shift ? '' : '<div class="warn">Смена закрыта. Продажи недоступны.</div>'}
+      <button class="btn" data-act="sell" ${lines.length && S.shift ? '' : 'disabled'}>${ui.cartTarget==='now' ? 'Провести · ' + money(total) : 'Записать на ПК ' + pad(ui.cartTarget)}</button>
+      ${lines.length ? '<button class="btn ghost" data-act="clearcart">Очистить</button>' : ''}</div></div>`;
+}
+
+/* ---------- shift ---------- */
+function shiftTotals(ops){
+  const t = {cash:0, card:0, kaspi:0, pc:0, bar:0, cost:0, storno:0, stornoN:0};
+  ops.forEach(o => { if (o.canceled){ t.storno += o.amount; t.stornoN++; return; } t[o.method] += o.amount; t[o.kind] += o.amount; t.cost += o.cost; });
+  return t;
+}
+function renderShift(){
+  const ops = S.shift ? shiftOps() : [], t = shiftTotals(ops);
+  const expected = S.shift ? S.shift.openingCash + t.cash : 0;
+  const last = S.closed[0];
+  const left = S.shift ? `<div class="card" style="display:grid;gap:14px">
+      <div><h2>Смена открыта</h2><p class="note" style="margin:4px 0 0">${esc(S.shift.admin)} · с ${hm(S.shift.openedAt)}</p></div>
+      <div class="lines"><div><span>Наличные на начало</span><span class="mono">${money(S.shift.openingCash)}</span></div>
+        <div><span>Наличные продажи</span><span class="mono">${money(t.cash)}</span></div>
+        <div class="sum"><span>Должно быть в кассе</span><span class="mono">${money(expected)}</span></div></div>
+      <div class="lines note"><div><span>Карта</span><span class="mono">${money(t.card)}</span></div><div><span>Kaspi QR</span><span class="mono">${money(t.kaspi)}</span></div>
+        <div><span>Компьютеры</span><span class="mono">${money(t.pc)}</span></div><div><span>Бар</span><span class="mono">${money(t.bar)}</span></div>
+        <div><span>Сторно (${t.stornoN})</span><span class="mono">${money(t.storno)}</span></div></div>
+      <div class="sec"><h3>Закрыть смену</h3>
+        <label class="f">Фактически наличных в кассе<input class="in mono" id="cashFact" type="number" inputmode="numeric" placeholder="${expected}"></label>
+        <div class="note" id="cashDiff">Пересчитайте наличные и введите сумму</div>
+        <button class="btn" data-act="closeshift">Закрыть смену</button></div></div>`
+    : `<div class="card" style="display:grid;gap:14px"><h2>Открыть смену</h2>
+      <label class="f">Администратор<input class="in" id="newAdmin" value="${esc(last?.admin || '')}" placeholder="Имя"></label>
+      <label class="f">Наличные в кассе на начало<input class="in mono" id="newCash" type="number" inputmode="numeric" value="${last ? last.actual : 20000}"></label>
+      <button class="btn" data-act="openshift">Открыть смену</button>
+      ${last ? `<div class="sec"><h3>Прошлая смена</h3><div class="lines"><div><span>${esc(last.admin)}</span><span class="mono">${hm(last.openedAt)}–${hm(last.closedAt)}</span></div>
+        <div><span>Ожидалось наличных</span><span class="mono">${money(last.expected)}</span></div><div><span>Фактически</span><span class="mono">${money(last.actual)}</span></div>
+        <div class="sum"><span>Расхождение</span><span class="mono" style="color:var(${last.diff<0?'--over':last.diff>0?'--res':'--free'})">${last.diff>0?'+':''}${money(last.diff)}</span></div></div></div>` : ''}</div>`;
+  const rows = ops.slice().reverse();
+  $('#view').innerHTML = `<div class="cols2">${left}
+    <div class="card" style="display:grid;gap:12px;min-width:0"><div class="head"><h2>Журнал операций</h2><span class="note">Удалить нельзя, только сторно с причиной</span></div>
+      <div class="tw"><table><thead><tr><th>Время</th><th>Тип</th><th>Операция</th><th>Оплата</th><th class="r">Сумма</th><th></th></tr></thead><tbody>
+      ${rows.length ? rows.map(o => `<tr class="${o.canceled?'cx':''}"><td class="mono">${hm(o.t)}</td><td class="keep"><span class="tag ${o.kind}">${o.kind==='pc'?'ПК':'Бар'}</span></td>
+        <td>${esc(o.title)}${o.canceled ? `<div class="note" style="text-decoration:none">Сторно: ${esc(o.reason)}</div>` : ''}</td><td>${METHODS[o.method]}</td><td class="r mono">${money(o.amount)}</td>
+        <td class="r keep">${o.canceled ? '' : ui.storno===o.id ? '' : `<button class="btn ghost sm" data-act="storno" data-id="${o.id}">Сторно</button>`}</td></tr>
+        ${ui.storno===o.id ? `<tr><td colspan="6"><div class="btns" style="align-items:center"><input class="in" id="stornoReason" placeholder="Причина сторно, например: ошибочно пробили" style="flex:2;min-width:200px"><button class="btn ghost sm" data-act="storno" data-id="">Отмена</button><button class="btn danger sm" data-act="dostorno" data-id="${o.id}">Подтвердить сторно</button></div></td></tr>` : ''}`).join('')
+      : '<tr><td colspan="6" class="note">Операций пока нет</td></tr>'}</tbody></table></div></div></div>`;
+}
+
+/* ---------- stock ---------- */
+function renderStock(){
+  const low = S.products.filter(p => p.stock <= 5);
+  $('#view').innerHTML = `<div class="card" style="display:grid;gap:14px;min-width:0"><div class="head"><h2>Склад бара</h2>${low.length ? `<span class="tag low">Заканчивается: ${low.map(p => esc(p.name)).join(', ')}</span>` : ''}</div>
+    <div class="tw"><table><thead><tr><th>Товар</th><th>Категория</th><th class="r">Закуп</th><th class="r">Цена</th><th class="r">Маржа</th><th class="r">Остаток</th><th>Приход</th></tr></thead><tbody>
+    ${S.products.map(p => { const m = p.price ? (p.price - p.cost)/p.price*100 : 0; return `<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.cat)}</td>
+      <td class="r"><input class="in mono" type="number" id="cost-${p.id}" data-prod="${p.id}" data-field="cost" value="${p.cost}"></td>
+      <td class="r"><input class="in mono" type="number" id="price-${p.id}" data-prod="${p.id}" data-field="price" value="${p.price}"></td>
+      <td class="r mono">${Math.round(m)}%<div class="note">${money(p.price - p.cost)}</div></td>
+      <td class="r mono">${p.stock<=5 ? `<span class="tag low">${p.stock} шт</span>` : p.stock + ' шт'}</td>
+      <td><div class="btns" style="flex-wrap:nowrap"><input class="in mono" type="number" min="1" id="in-${p.id}" placeholder="шт" style="width:70px"><button class="btn ghost sm" data-act="income" data-id="${p.id}">Принять</button></div></td></tr>`; }).join('')}
+    </tbody></table></div>
+    <div class="sec"><h3>Новый товар</h3><div class="btns" style="align-items:end">
+      <label class="f" style="flex:2;min-width:160px">Название<input class="in" id="np-name" placeholder="Pepsi 0,5"></label>
+      <label class="f" style="flex:1;min-width:120px">Категория<select class="in" id="np-cat">${[...new Set(S.products.map(p => p.cat))].map(c => `<option>${c}</option>`).join('')}</select></label>
+      <label class="f" style="flex:1;min-width:90px">Закуп<input class="in mono" type="number" id="np-cost"></label>
+      <label class="f" style="flex:1;min-width:90px">Цена<input class="in mono" type="number" id="np-price"></label>
+      <label class="f" style="flex:1;min-width:80px">Кол-во<input class="in mono" type="number" id="np-qty"></label>
+      <button class="btn sm" data-act="newprod" style="height:40px">Добавить</button></div></div></div>`;
+}
+
+/* ---------- tariffs ---------- */
+function renderTariffs(){
+  $('#view').innerHTML = `<div class="card" style="display:grid;gap:14px;min-width:0;max-width:820px"><div class="head"><h2>Тарифы и пакеты</h2><span class="note">Новые цены действуют для следующих продаж</span></div>
+    <div class="tw"><table><thead><tr><th>Зона</th>${PKGS.map(p => `<th class="r">${p.night?'Ночь 22–08':p.name}</th>`).join('')}</tr></thead><tbody>
+    ${Object.entries(ZONE).map(([z,name]) => `<tr><td><b>${name}</b><div class="note">${z==='std'?'ПК 01–10':'ПК 11–15'}</div></td>${PKGS.map(p => `<td class="r"><input class="in mono" type="number" id="t-${z}-${p.id}" data-tz="${z}" data-tp="${p.id}" value="${S.tariffs[z][p.id]}"></td>`).join('')}</tr>`).join('')}
+    </tbody></table></div><p class="note" style="margin:0">Ночной пакет продаётся с 21:00 до 06:00 и длится до 08:00 утра.</p></div>`;
+}
+
+/* ---------- reports ---------- */
+function renderReports(){
+  const t0 = dayStart(now());
+  const today = S.ops.filter(o => o.t >= t0 && live(o)), tt = shiftTotals(today);
+  const pcsNow = S.pcs.filter(p => p.session).length;
+  const days = [...S.history.filter(h => h.date < t0).slice(-6), {date:t0, pc:tt.pc, bar:tt.bar, barCost:tt.cost}];
+  const wk = days.reduce((a,d) => ({pc:a.pc+d.pc, bar:a.bar+d.bar, cost:a.cost+d.barCost}), {pc:0, bar:0, cost:0});
+  const total = tt.pc + tt.bar;
+  // 7-day stacked bars
+  const W = 640, Hh = 240, L = 56, R = 12, T = 22, B = 34, max = Math.ceil(Math.max(...days.map(d => d.pc + d.bar), 1) / 20000) * 20000;
+  const y = v => T + (Hh - T - B) * (1 - v/max), slot = (W - L - R) / days.length, bw = slot * .56;
+  let svg = `<svg viewBox="0 0 ${W} ${Hh}" width="100%" style="min-width:420px;display:block" role="img" aria-label="Оборот за 7 дней"><g class="ax">`;
+  for (let i = 0; i <= 4; i++){ const v = max/4*i; svg += `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end">${kfmt(v)}</text>`; }
+  svg += '</g>';
+  days.forEach((d,i) => { const x = L + slot*i + (slot-bw)/2, isT = i === days.length-1, dd = new Date(d.date);
+    svg += `<rect class="c-pc" x="${x}" y="${y(d.pc)}" width="${bw}" height="${y(0)-y(d.pc)}" rx="2"><title>ПК: ${money(d.pc)}</title></rect>
+      <rect class="c-bar" x="${x}" y="${y(d.pc+d.bar)}" width="${bw}" height="${y(d.pc)-y(d.pc+d.bar)}" rx="2"><title>Бар: ${money(d.bar)}</title></rect>
+      <text x="${x+bw/2}" y="${y(d.pc+d.bar)-6}" text-anchor="middle" style="fill:var(--ink);font-size:11px;font-weight:500">${kfmt(d.pc+d.bar)}</text>
+      <g class="ax"><text x="${x+bw/2}" y="${Hh-12}" text-anchor="middle" style="${isT?'fill:var(--ink);font-weight:500':''}">${isT?'Сегодня':DAYS[dd.getDay()] + ' ' + dd.getDate()}</text></g>`; });
+  svg += '</svg>';
+  // top products today
+  const top = {};
+  today.filter(o => o.kind === 'bar').forEach(o => o.items.forEach(x => { const k = top[x.name] ||= {q:0, rev:0, pr:0}; k.q += x.qty; k.rev += x.price*x.qty; k.pr += (x.price-x.cost)*x.qty; }));
+  const topRows = Object.entries(top).sort((a,b) => b[1].rev - a[1].rev).slice(0,6);
+  const pay = [['cash','--free'],['card','--busy'],['kaspi','--accent']], paySum = tt.cash + tt.card + tt.kaspi || 1;
+  const order = [1,2,3,4,5,6,0];
+  $('#view').innerHTML = `<div class="head"><h2>Отчёты</h2><span class="note">Сегодня, ${new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}. Прошлые дни заполнены демо-данными.</span></div>
+    <div class="kpis">
+      <div class="kpi"><span>Оборот за сегодня</span><b>${money(total)}</b><small>${today.length} операций</small></div>
+      <div class="kpi"><span>Компьютеры</span><b style="color:var(--busy)">${money(tt.pc)}</b><small>${total ? Math.round(tt.pc/total*100) : 0}% оборота · ${money(tt.pc/15)} на 1 ПК</small></div>
+      <div class="kpi"><span>Бар, выручка</span><b style="color:var(--accent)">${money(tt.bar)}</b><small>${total ? Math.round(tt.bar/total*100) : 0}% оборота</small></div>
+      <div class="kpi"><span>Бар, прибыль</span><b>${money(tt.bar - tt.cost)}</b><small>маржа ${tt.bar ? Math.round((tt.bar-tt.cost)/tt.bar*100) : 0}%</small></div>
+      <div class="kpi"><span>Загрузка сейчас</span><b>${Math.round(pcsNow/15*100)}%</b><small>${pcsNow} из 15 ПК заняты</small></div>
+    </div>
+    <div class="cols2" style="grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)">
+      <div class="card" style="display:grid;gap:12px"><div class="head"><h3>Оборот за 7 дней</h3><div class="lg"><span><i class="sw" style="background:var(--busy)"></i>Компьютеры</span><span><i class="sw" style="background:var(--accent)"></i>Бар</span></div></div>
+        <div class="tw">${svg}</div>
+        <div class="lines note"><div><span>За 7 дней: компьютеры</span><span class="mono">${money(wk.pc)}</span></div><div><span>За 7 дней: бар (прибыль ${money(wk.bar-wk.cost)})</span><span class="mono">${money(wk.bar)}</span></div>
+          <div class="sum" style="color:var(--ink)"><span>Итого за 7 дней</span><span class="mono">${money(wk.pc+wk.bar)}</span></div></div></div>
+      <div style="display:grid;gap:20px;min-width:0">
+        <div class="card" style="display:grid;gap:10px"><h3>Способы оплаты сегодня</h3>
+          <div class="split">${pay.map(([k,c]) => `<i style="width:${tt[k]/paySum*100}%;background:var(${c})"></i>`).join('')}</div>
+          <div class="lines">${pay.map(([k,c]) => `<div><span style="display:flex;gap:6px;align-items:center"><i class="sw" style="background:var(${c})"></i>${METHODS[k]}</span><span class="mono">${money(tt[k])}</span></div>`).join('')}</div></div>
+        <div class="card" style="display:grid;gap:10px;min-width:0"><h3>Бар сегодня: топ товаров</h3>
+          <div class="tw"><table><thead><tr><th>Товар</th><th class="r">Шт</th><th class="r">Выручка</th><th class="r">Прибыль</th></tr></thead><tbody>
+          ${topRows.map(([n,v]) => `<tr><td>${esc(n)}</td><td class="r mono">${v.q}</td><td class="r mono">${money(v.rev)}</td><td class="r mono">${money(v.pr)}</td></tr>`).join('') || '<tr><td colspan="4" class="note">Продаж пока нет</td></tr>'}
+          </tbody></table></div></div>
+      </div></div>
+    <div class="card" style="display:grid;gap:12px;min-width:0"><div class="head"><h3>Загрузка зала по часам</h3><span class="note">Средняя за 4 недели. Светлые клетки: зал пустует, время для акций</span></div>
+      <div class="tw"><div class="heat"><span></span>${Array.from({length:24}, (_,h) => `<span style="text-align:center">${h%3===0?pad(h):''}</span>`).join('')}
+      ${order.map(wd => `<span class="hl">${DAYS[wd]}</span>${S.heat[wd].map((v,h) => `<i title="${DAYS[wd]} ${pad(h)}:00 · ${Math.round(v*100)}%" style="background:color-mix(in srgb,var(--busy) ${Math.round(v*100)}%,var(--surface-2))"></i>`).join('')}`).join('')}</div></div></div>`;
+}
+
+/* ---------- actions ---------- */
+let toastT;
+function toast(msg){ const el = $('#toast'); el.textContent = msg; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => el.hidden = true, 2600); }
+function commit(msg){ save(); render(); if (msg) toast(msg); }
+
+const ACT = {
+  view(d){ ui.view = d.v; ui.sel = null; try { history.replaceState(null, '', '#' + d.v); } catch(e){} render(); window.scrollTo(0,0); },
+  pc(d){ openPc(d.id); },
+  close(){ closeDrawer(); },
+  dset(d){ ui.draft[d.k] = d.v; renderDrawer(); },
+  start(){
+    if (needShift()) return;
+    const pc = pcById(ui.sel), d = ui.draft, t = now(), price = S.tariffs[pc.zone][d.pkg], guest = d.guest.trim() || 'Гость', name = pkgById(d.pkg).night ? 'Ночь' : pkgById(d.pkg).name;
+    pc.session = {guest, phone:d.phone.trim(), pkg:name, start:t, end:endFor(d.pkg, t), paid:price, tab:[]};
+    addOp({kind:'pc', title:`ПК ${pad(pc.id)} · ${name} · ${guest}`, amount:price, method:d.method});
+    ui.sel = null; commit(`ПК ${pad(pc.id)} запущен до ${hm(pc.session.end)}`);
+  },
+  reserve(){
+    const pc = pcById(ui.sel), d = ui.draft;
+    if (!/^\d\d:\d\d$/.test(d.rtime)) return toast('Укажите время прихода');
+    const [h,m] = d.rtime.split(':').map(Number), at = new Date(); at.setHours(h,m,0,0);
+    if (at.getTime() < now() - 5*M) at.setDate(at.getDate()+1);
+    pc.reservation = {guest:d.guest.trim() || 'Гость', phone:d.phone.trim(), at:at.getTime(), pkg:d.pkg};
+    ui.sel = null; commit(`ПК ${pad(pc.id)} забронирован на ${d.rtime}`);
+  },
+  seat(){
+    if (needShift()) return;
+    const pc = pcById(ui.sel), r = pc.reservation, d = ui.draft, t = now(), price = S.tariffs[pc.zone][d.pkg], name = pkgById(d.pkg).night ? 'Ночь' : pkgById(d.pkg).name;
+    pc.session = {guest:r.guest, phone:r.phone, pkg:name, start:t, end:endFor(d.pkg, t), paid:price, tab:[]}; pc.reservation = null;
+    addOp({kind:'pc', title:`ПК ${pad(pc.id)} · ${name} · ${r.guest} (бронь)`, amount:price, method:d.method});
+    ui.sel = null; commit(`${r.guest} сел за ПК ${pad(pc.id)}`);
+  },
+  unreserve(){ const pc = pcById(ui.sel); pc.reservation = null; commit('Бронь снята'); },
+  extend(d){
+    if (needShift()) return;
+    const pc = pcById(ui.sel), s = pc.session, p = pkgById(d.pkg), price = S.tariffs[pc.zone][d.pkg];
+    s.end = Math.max(s.end, now()) + p.min*M; s.paid += price; s.pkg += ' + ' + p.name;
+    addOp({kind:'pc', title:`ПК ${pad(pc.id)} · продление ${p.name} · ${s.guest}`, amount:price, method:ui.draft.method});
+    commit(`Продлено до ${hm(s.end)}`);
+  },
+  tobar(){ ui.cartTarget = String(ui.sel); ui.sel = null; ui.view = 'bar'; render(); },
+  move(){
+    const from = pcById(ui.sel), to = pcById(ui.draft.moveTo || $('#d-move')?.value);
+    if (!to || status(to) !== 'free') return toast('Выберите свободный ПК');
+    to.session = from.session; from.session = null; ui.sel = to.id; ui.draft = {method:'cash', pkg:'h1'};
+    commit(`${to.session.guest} пересажен на ПК ${pad(to.id)}`);
+  },
+  end(){
+    const pc = pcById(ui.sel), s = pc.session, tsum = tabSum(s);
+    if (tsum){ if (needShift()) return;
+      addOp({kind:'bar', title:`Бар · ПК ${pad(pc.id)} · ${s.guest}`, amount:tsum, cost:tabCost(s), method:ui.draft.method, items:s.tab}); }
+    pc.session = null; ui.sel = null; commit(`ПК ${pad(pc.id)} свободен`);
+  },
+  setoff(){ const pc = pcById(ui.sel); pc.status = ui.draft.offMode; pc.note = (ui.draft.note || '').trim(); pc.reservation = null; commit(`ПК ${pad(pc.id)}: ${ST[pc.status].l.toLowerCase()}`); },
+  online(){ const pc = pcById(ui.sel); pc.status = 'on'; pc.note = ''; commit(`ПК ${pad(pc.id)} снова в работе`); },
+  cat(d){ ui.cat = d.v; render(); },
+  add(d){ const p = prodById(d.id); if ((ui.cart[d.id]||0) < p.stock){ ui.cart[d.id] = (ui.cart[d.id]||0) + 1; render(); } },
+  dec(d){ ui.cart[d.id]--; if (ui.cart[d.id] <= 0) delete ui.cart[d.id]; render(); },
+  clearcart(){ ui.cart = {}; render(); },
+  cmethod(d){ ui.cartMethod = d.v; render(); },
+  sell(){
+    if (needShift()) return;
+    const items = Object.entries(ui.cart).map(([pid,qty]) => { const p = prodById(pid); p.stock -= qty; return {pid, name:p.name, qty, price:p.price, cost:p.cost}; });
+    const total = items.reduce((s,x) => s + x.price*x.qty, 0);
+    if (ui.cartTarget === 'now'){
+      addOp({kind:'bar', title:'Бар · ' + items.map(x => x.name + (x.qty>1?' ×'+x.qty:'')).join(', '), amount:total, cost:items.reduce((s,x)=>s+x.cost*x.qty,0), method:ui.cartMethod, items});
+      ui.cart = {}; commit(`Продажа проведена · ${money(total)}`);
+    } else {
+      const pc = pcById(ui.cartTarget);
+      items.forEach(x => { const ex = pc.session.tab.find(y => y.pid === x.pid); ex ? ex.qty += x.qty : pc.session.tab.push(x); });
+      ui.cart = {}; commit(`Записано на ПК ${pad(pc.id)} · ${money(total)}`);
+    }
+  },
+  storno(d){ ui.storno = d.id ? +d.id : null; render(); setTimeout(() => $('#stornoReason')?.focus(), 0); },
+  dostorno(d){
+    const reason = $('#stornoReason').value.trim();
+    if (!reason) return toast('Укажите причину сторно');
+    const o = S.ops.find(x => x.id === +d.id); o.canceled = true; o.reason = reason;
+    o.items.forEach(x => { const p = prodById(x.pid); if (p) p.stock += x.qty; });
+    ui.storno = null; commit('Операция сторнирована');
+  },
+  closeshift(){
+    const v = $('#cashFact').value;
+    if (v === '') return toast('Введите фактическую сумму наличных');
+    const t = shiftTotals(shiftOps()), expected = S.shift.openingCash + t.cash, actual = +v;
+    S.closed.unshift(Object.assign({}, S.shift, {closedAt:now(), expected, actual, diff:actual - expected, totals:t}));
+    S.shift = null; commit(actual === expected ? 'Смена закрыта, касса сошлась' : `Смена закрыта, расхождение ${money(actual - expected)}`);
+  },
+  openshift(){
+    const admin = $('#newAdmin').value.trim(); if (!admin) return toast('Укажите имя администратора');
+    S.shift = {admin, openedAt:now(), openingCash:+$('#newCash').value || 0}; commit('Смена открыта');
+  },
+  income(d){
+    const q = +$('#in-' + d.id).value; if (!(q > 0)) return toast('Введите количество');
+    prodById(d.id).stock += q; commit(`Принято ${q} шт`);
+  },
+  newprod(){
+    const name = $('#np-name').value.trim(), cost = +$('#np-cost').value, price = +$('#np-price').value;
+    if (!name || !(price > 0)) return toast('Заполните название и цену');
+    S.products.push({id:'p' + Date.now(), name, cat:$('#np-cat').value, cost, price, stock:+$('#np-qty').value || 0}); commit(`${name} добавлен`);
+  },
+};
+
+document.addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (b && !b.disabled) ACT[b.dataset.act]?.(b.dataset, b); });
+document.addEventListener('input', e => {
+  const el = e.target;
+  if (el.dataset.f) ui.draft[el.dataset.f] = el.value;
+  if (el.id === 'd-rtime'){ const btn = document.querySelector('[data-act="reserve"]'); if (btn) btn.textContent = 'Забронировать на ' + el.value; }
+  if (el.id === 'cashFact'){
+    const t = shiftTotals(shiftOps()), diff = (+el.value || 0) - (S.shift.openingCash + t.cash), out = $('#cashDiff');
+    out.innerHTML = el.value === '' ? 'Пересчитайте наличные и введите сумму' : diff === 0 ? '<b style="color:var(--free)">Касса сходится</b>' : `<b style="color:var(${diff<0?'--over':'--res'})">${diff<0?'Недостача':'Излишек'} ${money(Math.abs(diff))}</b>`;
+  }
+});
+document.addEventListener('change', e => {
+  const el = e.target;
+  if (el.id === 'role'){ S.role = el.value; save(); render(); }
+  if (el.id === 'cartTarget'){ ui.cartTarget = el.value; render(); }
+  if (el.dataset.prod){ prodById(el.dataset.prod)[el.dataset.field] = Math.max(0, +el.value || 0); commit('Сохранено'); }
+  if (el.dataset.tz){ S.tariffs[el.dataset.tz][el.dataset.tp] = Math.max(0, +el.value || 0); save(); toast('Тариф сохранён'); }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && ui.sel) closeDrawer(); });
+
+load();
+const h0 = location.hash.slice(1); if (VIEWS.some(v => v.id === h0)) ui.view = h0;
+render(); tickClock();
+setInterval(() => {
+  tickClock();
+  if (ui.view === 'hall') patchHall();
+  const el = document.querySelector('[data-left]');
+  if (el){ const s = pcById(el.dataset.left).session; if (s){ const l = s.end - now(); el.textContent = (l < 0 ? '+' : '') + dur(l); } }
+}, 1000);
+</script>
+</body>
+</html>
